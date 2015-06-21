@@ -1,5 +1,6 @@
 package ai.nxt.seqpred;
 
+import ai.nxt.seqpred.util.FileUtil;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
@@ -29,40 +30,17 @@ public class Vocab {
         try {
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(new FileInputStream(trainingFileName)));
-            String nextWord = readNextWord(reader);
+            String nextWord = FileUtil.readNextWord(reader);
             while (! (nextWord == null || nextWord.equals(""))) {
                 totalWordCount++;
                 if (! vocabBiMap.containsKey(nextWord)) {
                     vocabBiMap.put(nextWord, vocabBiMap.size());
                 }
-                nextWord = readNextWord(reader);
+                nextWord = FileUtil.readNextWord(reader);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    private String readNextWord(BufferedReader reader) {
-        String currentWord = "";
-        try {
-            int currentChar;
-            while ((currentChar = reader.read()) != -1) {
-                if ((currentChar == 13) || (currentChar == ' ') || (currentChar == '\t') || (currentChar == '\n')) { // if white space
-                    if (currentWord.length() > 0) {
-                        break;
-                    } else {
-                        if (currentChar == '\n') {
-                            return "</s>";
-                        }
-                    }
-                } else {
-                    currentWord += (char) currentChar;
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return currentWord;
     }
 
     public int getVocabSize() {
@@ -71,5 +49,9 @@ public class Vocab {
 
     public int getTrainingFileSize() {
         return totalWordCount;
+    }
+
+    public int getWordIndex(String word) {
+        return vocabBiMap.get(word);
     }
 }

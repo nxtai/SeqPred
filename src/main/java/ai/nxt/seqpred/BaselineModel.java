@@ -23,6 +23,17 @@ public class BaselineModel extends Model {
         }
         // predict last word in vocab
         prediction[vocab.getVocabSize()-1] = 1.0;
+
+        // simple smoothing
+        double predictionSum = 0;
+        for (int i = 0; i<prediction.length; i++) {
+            prediction[i] += 0.1;
+            predictionSum += prediction[i];
+        }
+        for (int i = 0; i<prediction.length; i++) {
+            prediction[i] = prediction[i] / predictionSum;
+        }
+
         return prediction;
     }
 }

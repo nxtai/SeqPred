@@ -1,6 +1,7 @@
 package ai.nxt.seqpred;
 
 import ai.nxt.seqpred.Exceptions.FileTooShortException;
+import ai.nxt.seqpred.Exceptions.InvalidPredictionException;
 import org.apache.commons.cli.*;
 
 /**
@@ -41,8 +42,9 @@ public class SequencePredictorCli {
         System.out.println("Vocab size is " + vocab.getVocabSize());
 
         // partition
+        FilePartitioner filePartitioner;
         try {
-            FilePartitioner filePartitioner = new FilePartitioner(trainingFileName);
+            filePartitioner = new FilePartitioner(trainingFileName);
         } catch (FileTooShortException e) {
             System.err.println("The training file must be at least 5 lines long");
             return;
@@ -57,8 +59,13 @@ public class SequencePredictorCli {
         model.train();
 
         // test model
-        ModelEvaluator evaluator = new ModelEvaluator(trainingFileName);
-        evaluator.testModel(model);
+        try {
+            ModelEvaluator evaluator = new ModelEvaluator(filePartitioner.getTestFile(), vocab);
+            evaluator.testModel(model);
+        } catch (InvalidPredictionException e) {
+            System.err.println("The model return an invalid prediction. Wrong size or did not sum to 1.");
+            return;
+        }
 
         System.out.println("Cli terminated");
     }
