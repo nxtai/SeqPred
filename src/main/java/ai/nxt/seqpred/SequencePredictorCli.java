@@ -48,7 +48,8 @@ public class SequencePredictorCli {
         model.train();
 
         // test model
-        model.test();
+        ModelEvaluator evaluator = new ModelEvaluator(trainingFileName);
+        evaluator.testModel(model);
 
         System.out.println("Cli terminated");
     }
