@@ -32,6 +32,13 @@ public class SequencePredictorCli {
         // print out parsed CLI arguments
         System.out.println("Training file: " + trainingFileName);
 
+        // process training file
+        Vocab vocab = new Vocab(trainingFileName);
+
+        // print out statistics
+        System.out.println("Processed " + vocab.getTrainingFileSize() + " words in training file");
+        System.out.println("Vocab size is " + vocab.getVocabSize());
+
         System.out.println("Cli terminated");
     }
 
