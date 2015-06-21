@@ -28,8 +28,42 @@ public class RnnParameterPack {
 
     public static RnnParameterPack createRandomPack(int vocabSize, int hiddenSize) {
         RnnParameterPack rnnParameterPack = createEmptyPack(vocabSize, hiddenSize);
-        // TODO: fill with random values
+
+        for (int i = 0; i<rnnParameterPack.getWhx().getRowDimension(); i++) {
+            for (int j = 0; j<rnnParameterPack.getWhx().getColumnDimension(); j++) {
+                rnnParameterPack.getWhx().setEntry(i,j,getRandom());
+            }
+        }
+
+        for (int i = 0; i<rnnParameterPack.getWhh().getRowDimension(); i++) {
+            for (int j = 0; j<rnnParameterPack.getWhh().getColumnDimension(); j++) {
+                rnnParameterPack.getWhh().setEntry(i,j,getRandom());
+            }
+        }
+
+        for (int i = 0; i<rnnParameterPack.getWyh().getRowDimension(); i++) {
+            for (int j = 0; j<rnnParameterPack.getWyh().getColumnDimension(); j++) {
+                rnnParameterPack.getWyh().setEntry(i,j,getRandom());
+            }
+        }
+
+        for (int i = 0; i<rnnParameterPack.getBh().getDimension(); i++) {
+            rnnParameterPack.getBh().setEntry(i,getRandom());
+        }
+
+        for (int i = 0; i<rnnParameterPack.getBy().getDimension(); i++) {
+            rnnParameterPack.getBy().setEntry(i,getRandom());
+        }
+
+        for (int i = 0; i<rnnParameterPack.getBinit().getDimension(); i++) {
+            rnnParameterPack.getBinit().setEntry(i,getRandom());
+        }
+
         return rnnParameterPack;
+    }
+
+    private static double getRandom() {
+        return Math.random();
     }
 
     public RealMatrix getWhx() {
@@ -78,5 +112,14 @@ public class RnnParameterPack {
 
     public void setBinit(RealVector binit) {
         this.binit = binit;
+    }
+
+    public void weightedAddition(RnnParameterPack pack, double alpha) {
+        setWhx(getWhx().add(pack.getWhx().scalarMultiply(alpha)));
+        setWhh(getWhh().add(pack.getWhh().scalarMultiply(alpha)));
+        setWyh(getWyh().add(pack.getWyh().scalarMultiply(alpha)));
+        setBh(getBh().add(pack.getBh().mapMultiply(alpha)));
+        setBy(getBy().add(pack.getBy().mapMultiply(alpha)));
+        setBinit(getBinit().add(pack.getBinit().mapMultiply(alpha)));
     }
 }

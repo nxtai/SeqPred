@@ -44,6 +44,11 @@ public class ModelEvaluator {
     }
 
     public void assertPrediction(double[] prediction) throws InvalidPredictionException {
+        // prediction cannot be null
+        if (prediction == null) {
+            throw new InvalidPredictionException();
+        }
+
         // prediction must have same length as vocab size
         if (vocab.getVocabSize() != prediction.length) {
             throw new InvalidPredictionException();

@@ -1,8 +1,6 @@
 package ai.nxt.seqpred.util;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 
 /**
  * Created by jh on 21/06/15.
@@ -43,5 +41,21 @@ public class FileUtil {
             e.printStackTrace();
         }
         return count;
+    }
+
+    public static int countWords(String fileName) {
+        int wordCount = 0;
+        try {
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(new FileInputStream(fileName)));
+            String nextWord = FileUtil.readNextWord(reader);
+            while (! (nextWord == null || nextWord.equals(""))) {
+                wordCount++;
+                nextWord = FileUtil.readNextWord(reader);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return wordCount;
     }
 }

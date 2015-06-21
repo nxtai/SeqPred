@@ -2,6 +2,7 @@ package ai.nxt.seqpred;
 
 import ai.nxt.seqpred.Exceptions.FileTooShortException;
 import ai.nxt.seqpred.Exceptions.InvalidPredictionException;
+import ai.nxt.seqpred.rnn.Rnn;
 import org.apache.commons.cli.*;
 
 /**
@@ -51,7 +52,7 @@ public class SequencePredictorCli {
         }
 
         // initialise model
-        Model model = new BaselineModel(vocab);
+        Model model = new Rnn(vocab);
         model.setTrainingFile(trainingFileName);
         model.init();
 
