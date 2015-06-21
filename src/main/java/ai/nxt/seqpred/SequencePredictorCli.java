@@ -39,6 +39,17 @@ public class SequencePredictorCli {
         System.out.println("Processed " + vocab.getTrainingFileSize() + " words in training file");
         System.out.println("Vocab size is " + vocab.getVocabSize());
 
+        // initialise Rnn
+        Model model = new Rnn();
+        model.setTrainingFile(trainingFileName);
+        model.init();
+
+        // train model
+        model.train();
+
+        // test model
+        model.test();
+
         System.out.println("Cli terminated");
     }
 
