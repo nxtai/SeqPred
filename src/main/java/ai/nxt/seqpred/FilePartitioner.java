@@ -1,6 +1,7 @@
 package ai.nxt.seqpred;
 
 import ai.nxt.seqpred.Exceptions.FileTooShortException;
+import ai.nxt.seqpred.util.FileUtil;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -18,7 +19,7 @@ public class FilePartitioner {
 
     public FilePartitioner(String trainingFileName) throws FileTooShortException {
         // count lines in file
-        int lineCount = countLines(trainingFileName);
+        int lineCount = FileUtil.countLines(trainingFileName);
 
         if (lineCount < 5) {
             throw new FileTooShortException();
@@ -83,19 +84,5 @@ public class FilePartitioner {
 
     public String getTestFile() {
         return testFile;
-    }
-
-    private int countLines(String fileName) {
-        int count = 0;
-        try {
-            BufferedReader br = new BufferedReader(new FileReader(fileName));
-            String line;
-            while ((line = br.readLine()) != null) {
-                count++;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return count;
     }
 }

@@ -21,6 +21,10 @@ public abstract class Model {
         this.trainingFileName = trainingFileName;
     }
 
+    protected String getTrainingFileName() {
+        return trainingFileName;
+    }
+
     // these method are used for testing model performance
     public abstract void feedNextToken(int tokenId);
     public abstract double[] predictNextToken();
