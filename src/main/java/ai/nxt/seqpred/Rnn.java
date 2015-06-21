@@ -6,6 +6,11 @@ import java.util.ArrayList;
  * Created by Jeppe Hallgren on 21/06/15.
  */
 public class Rnn extends Model {
+
+    public Rnn(Vocab vocab) {
+        super(vocab);
+    }
+
     public void train() {
         // TODO: Implement this
     }

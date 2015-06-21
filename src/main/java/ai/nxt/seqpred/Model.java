@@ -7,6 +7,11 @@ import java.util.ArrayList;
  */
 public abstract class Model {
     private String trainingFileName;
+    protected Vocab vocab;
+
+    public Model(Vocab vocab) {
+        this.vocab = vocab;
+    }
 
     public void init() {
         // models can override this, but don't have to
