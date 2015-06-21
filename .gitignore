@@ -14,3 +14,7 @@ hs_err_pid*
 # IntelliJ
 .idea/*
 seqpred.iml
+
+# Gradle
+.gradle
+build/*
