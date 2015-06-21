@@ -1,7 +1,5 @@
 package ai.nxt.seqpred;
 
-import java.util.ArrayList;
-
 /**
  * Created by Jeppe Hallgren on 21/06/15.
  * This is a very simple model that just predicts the last word in the vocab every time
@@ -18,13 +16,13 @@ public class BaselineModel extends Model {
     public void feedNextToken(int tokenId) {
         // don't need to keep track of token history
     }
-    public ArrayList<Integer> predictNextToken() {
-        ArrayList<Integer> prediction = new ArrayList<Integer>(vocab.getVocabSize());
-        for (Integer i : prediction) {
-            i = 0;
+    public double[] predictNextToken() {
+        double[] prediction = new double[vocab.getVocabSize()];
+        for (int i = 0; i<prediction.length; i++) {
+            prediction[i] = 0.0;
         }
         // predict last word in vocab
-        prediction.set(vocab.getVocabSize()-1,1);
+        prediction[vocab.getVocabSize()-1] = 1.0;
         return prediction;
     }
 }

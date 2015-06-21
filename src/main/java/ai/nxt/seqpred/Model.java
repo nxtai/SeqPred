@@ -1,7 +1,5 @@
 package ai.nxt.seqpred;
 
-import java.util.ArrayList;
-
 /**
  * Created by Jeppe Hallgren on 21/06/15.
  */
@@ -25,5 +23,5 @@ public abstract class Model {
 
     // these method are used for testing model performance
     public abstract void feedNextToken(int tokenId);
-    public abstract ArrayList<Integer> predictNextToken();
+    public abstract double[] predictNextToken();
 }
