@@ -6,8 +6,13 @@ import org.apache.commons.cli.*;
  * Created by Jeppe Hallgren on 21/06/15.
  */
 public class SequencePredictorCli {
+    public static String versionString = "v0.0.1";
+    public static String yearOfRelease = "2015";
+
     public static void main(String args[]) {
         Options cliOptions = getCliOptions(args);
+
+        String trainingFileName = null;
 
         try {
             // parse arguments
@@ -16,11 +21,16 @@ public class SequencePredictorCli {
 
             // validate that training-file is present
             if(line.hasOption("training-file")) {
-                System.out.println("Hello world " + line.getOptionValue("training-file"));
+                trainingFileName = line.getOptionValue("training-file");
             }
         } catch (ParseException e) {
             System.out.println("Cli parsing failed:" + e.getMessage());
         }
+
+        System.out.println("* Sequence Predictor " + versionString + " © NXT.AI " + yearOfRelease + " *");
+
+        // print out parsed CLI arguments
+        System.out.println("Training file: " + trainingFileName);
 
         System.out.println("Cli terminated");
     }
