@@ -1,5 +1,6 @@
 package ai.nxt.seqpred;
 
+import ai.nxt.seqpred.Exceptions.FileTooShortException;
 import org.apache.commons.cli.*;
 
 /**
@@ -38,6 +39,14 @@ public class SequencePredictorCli {
         // print out statistics
         System.out.println("Processed " + vocab.getTrainingFileSize() + " words in training file");
         System.out.println("Vocab size is " + vocab.getVocabSize());
+
+        // partition
+        try {
+            FilePartitioner filePartitioner = new FilePartitioner(trainingFileName);
+        } catch (FileTooShortException e) {
+            System.err.println("The training file must be at least 5 lines long");
+            return;
+        }
 
         // initialise model
         Model model = new BaselineModel(vocab);
