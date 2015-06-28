@@ -3,6 +3,7 @@ package ai.nxt.seqpred.rnn;
 import ai.nxt.seqpred.Model;
 import ai.nxt.seqpred.Vocab;
 import ai.nxt.seqpred.util.FileUtil;
+import ai.nxt.seqpred.util.NnUtil;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealVector;
 
@@ -18,8 +19,9 @@ import java.util.ArrayList;
 public class Rnn extends Model {
     RnnParameterPack currentNetworkParameters;
     private int hiddenLayerSize = 15;
-    private int minibatchSize = 5;
+    private int minibatchSize = 10;
     private double lastPerplexity;
+    private int testTokensSeen = 0;
 
     private ArrayList<RealVector> x;
     private ArrayList<RealVector> t;
@@ -32,7 +34,6 @@ public class Rnn extends Model {
     }
 
     public void train() {
-        // TODO: Implement this
         lastPerplexity = Double.MAX_VALUE;
         int wordCount = FileUtil.countWords(getTrainingFileName());
         int minibatchCount = wordCount / minibatchSize;
@@ -52,18 +53,20 @@ public class Rnn extends Model {
             double loss = forwardPass(currentNetworkParameters, currentMinibatch, true);
             System.out.println("Loss of forward prop: " + loss);
 
-            RnnParameterPack gradient = computeGrad();
-            currentNetworkParameters.weightedAddition(gradient,1);
+            RnnParameterPack gradient = computeGrad(currentNetworkParameters);
+            currentNetworkParameters.weightedAddition(gradient,1/minibatchSize);
 
             // switch to next minibatch
             currentMinibatch = (currentMinibatch + 1) % minibatchCount;
 
             // increment count
             gradRound++;
-        } while (! hasConverged());
+        } while (! hasConverged(gradRound));
     }
 
-    public boolean hasConverged() {
+    public boolean hasConverged(int gradRound) {
+        if (gradRound < 100) return false;
+
         double newPerplexity = 80;
 
         if (newPerplexity < lastPerplexity) {
@@ -142,23 +145,100 @@ public class Rnn extends Model {
         return Math.pow(10,-1*newLogSum / minibatchSize);
     }
 
-    private double hiddenActivationFunction(double a) {
-        // TODO: Implement this
-        return a;
-    }
-
     private double outputActivationFunction(double a) {
-        // TODO: Implement this
-        return a;
+        return NnUtil.sigmoidFunction(a);
     }
 
-    private RnnParameterPack computeGrad() {
-        // TODO: Implement this
-        return RnnParameterPack.createRandomPack(vocab.getVocabSize(), hiddenLayerSize);
+    private double derivativeOfOutputActivationFunction(double a) {
+        return NnUtil.derivativeOfSigmoidFunction(a);
+    }
+
+    private double hiddenActivationFunction(double a) {
+        return NnUtil.tanhFunction(a);
+    }
+
+    private double derivativeOfHiddenActivationFunction(double a) {
+        return NnUtil.derivativeOfTanhFunction(a);
+    }
+
+    private RnnParameterPack computeGrad(RnnParameterPack model) {
+        ArrayList<RealVector> deltaOutput = new ArrayList<RealVector>();
+        for(int i = 0; i<minibatchSize+1; i++) {
+            deltaOutput.add(i, MatrixUtils.createRealVector(new double[vocab.getVocabSize()]));
+        }
+
+        for (int i = minibatchSize-1; i>0; i--){
+            if (i == minibatchSize-1) {
+                for (int k = 0; k < s.get(i).getDimension(); k++) {
+                    deltaOutput.get(i).setEntry(k, derivativeOfOutputActivationFunction(s.get(i).getEntry(k)) * (x.get(i+1).getEntry(k)-y.get(i).getEntry(k)));
+                }
+            } else {
+                for (int k = 0; k < s.get(i).getDimension(); k++) {
+                    deltaOutput.get(i).setEntry(k, derivativeOfOutputActivationFunction(s.get(i).getEntry(k)) * (x.get(i+1).getEntry(k)-y.get(i).getEntry(k)));
+                }
+            }
+        }
+
+        return backwardPass(model, deltaOutput);
+    }
+
+    private RnnParameterPack backwardPass(RnnParameterPack model, ArrayList<RealVector> deltaOutput) {
+        // no damping
+        ArrayList<RealVector> damping = new ArrayList<RealVector>();
+        for(int i = 0; i<minibatchSize+1; i++) {
+            damping.add(i, MatrixUtils.createRealVector(new double[hiddenLayerSize]));
+        }
+        return backwardsPassWithDamping(model, deltaOutput, damping);
+    }
+
+    private RnnParameterPack backwardsPassWithDamping(RnnParameterPack model, ArrayList<RealVector> deltaOutput, ArrayList<RealVector> damping){
+        ArrayList<RealVector> deltaHidden = new ArrayList<RealVector>();
+        ArrayList<RealVector> deltaZ = new ArrayList<RealVector>();
+        for(int i = 0; i<minibatchSize+1; i++) {
+            deltaHidden.add(i, MatrixUtils.createRealVector(new double[hiddenLayerSize]));
+            deltaZ.add(i, MatrixUtils.createRealVector(new double[hiddenLayerSize]));
+        }
+
+        for (int i = minibatchSize; i>0; i--){
+            if (i == minibatchSize) {
+                deltaHidden.set(i, currentNetworkParameters.getWyh().transpose().operate(deltaOutput.get(i)));
+                RealVector tmp2 = t.get(i);
+                for (int k = 0; k < tmp2.getDimension(); k++) {
+                    tmp2.setEntry(k, derivativeOfHiddenActivationFunction(t.get(i).getEntry(k)));
+                }
+                deltaZ.set(i, deltaHidden.get(i).ebeMultiply(tmp2));
+            } else {
+                deltaHidden.set(i, currentNetworkParameters.getWyh().transpose().operate(deltaOutput.get(i)));
+                deltaHidden.get(i).add(currentNetworkParameters.getWhh().transpose().operate(deltaZ.get(i+1)));
+                RealVector tmp2 = t.get(i);
+                for (int k = 0; k < tmp2.getDimension(); k++) {
+                    tmp2.setEntry(k, derivativeOfHiddenActivationFunction(t.get(i).getEntry(k)));
+                }
+                deltaZ.set(i, deltaHidden.get(i).ebeMultiply(tmp2));
+            }
+
+            deltaZ.set(i, deltaZ.get(i).add(damping.get(i)));
+        }
+
+        RnnParameterPack gradPack = RnnParameterPack.createEmptyPack(vocab.getVocabSize(), hiddenLayerSize);
+
+        for (int i = minibatchSize; i>0; i--){
+            gradPack.setWyh(gradPack.getWyh().add(deltaOutput.get(i).outerProduct(h.get(i))));
+            gradPack.setWhh(gradPack.getWhh().add(deltaZ.get(i).outerProduct(h.get(i-1))));
+            gradPack.setWhx(gradPack.getWhx().add(deltaZ.get(i).outerProduct(x.get(i))));
+
+            gradPack.setBh(gradPack.getBh().add(deltaZ.get(i)));
+            gradPack.setBy(gradPack.getBy().add(deltaOutput.get(i)));
+        }
+
+        gradPack.setBinit(currentNetworkParameters.getWhh().transpose().operate(deltaZ.get(1)));
+
+        return gradPack;
     }
 
     public void feedNextToken(int tokenId) {
         // TODO: Implement this
+        testTokensSeen++;
     }
     public double[] predictNextToken() {
         // TODO: Implement this
