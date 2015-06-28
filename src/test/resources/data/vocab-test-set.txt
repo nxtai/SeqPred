@@ -1,0 +1,2 @@
+This is a file with 16 tokens
+This is a file with 12 terms including newline
