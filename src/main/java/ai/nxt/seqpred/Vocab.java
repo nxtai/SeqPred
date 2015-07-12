@@ -16,6 +16,7 @@ public class Vocab {
     private String trainingFileName;
     private BiMap<String, Integer> vocabBiMap;
     private int totalWordCount;
+    public static final int START_TOKEN = 0;
 
     public Vocab (String trainingFileName) {
         this.trainingFileName = trainingFileName;
@@ -25,7 +26,8 @@ public class Vocab {
     private void processTrainingFile() {
         totalWordCount = 0;
         vocabBiMap = HashBiMap.create();
-        vocabBiMap.put("</s>",0); //end of sentence token
+        vocabBiMap.put("<start>", START_TOKEN);
+        vocabBiMap.put("</s>",1); //end of sentence token
 
         try {
             BufferedReader reader = new BufferedReader(
@@ -53,5 +55,9 @@ public class Vocab {
 
     public int getWordIndex(String word) {
         return vocabBiMap.get(word);
+    }
+
+    public String getWordString(int wordIndex) {
+        return vocabBiMap.inverse().get(wordIndex);
     }
 }

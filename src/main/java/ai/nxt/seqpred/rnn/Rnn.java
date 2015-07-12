@@ -5,6 +5,7 @@ import ai.nxt.seqpred.Vocab;
 import ai.nxt.seqpred.util.FileUtil;
 import ai.nxt.seqpred.util.MatrixUtil;
 import ai.nxt.seqpred.util.NnUtil;
+import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealVector;
 
 import java.io.BufferedReader;
@@ -28,6 +29,10 @@ public class Rnn extends Model {
     private ArrayList<RealVector> h;
     private ArrayList<RealVector> s;
     private ArrayList<RealVector> y;
+
+    // temporaries needed for evaluation
+    private RealVector latestH;
+    private RealVector latestPrediction;
 
     public Rnn(Vocab vocab) {
         super(vocab);
@@ -86,11 +91,11 @@ public class Rnn extends Model {
     }
 
     protected double forwardPass(RnnParameterPack networkSettings, int currentMinibatch, boolean updateState) {
-        ArrayList<RealVector> x = MatrixUtil.createListOfVectors(minibatchSize+1, networkSettings.getInputSize());
-        ArrayList<RealVector> t = MatrixUtil.createListOfVectors(minibatchSize+1, networkSettings.getHiddenSize());
-        ArrayList<RealVector> h = MatrixUtil.createListOfVectors(minibatchSize+1, networkSettings.getHiddenSize());
-        ArrayList<RealVector> s = MatrixUtil.createListOfVectors(minibatchSize+1, networkSettings.getInputSize());
-        ArrayList<RealVector> y = MatrixUtil.createListOfVectors(minibatchSize+1, networkSettings.getInputSize());
+        ArrayList<RealVector> x = MatrixUtil.createListOfVectors(minibatchSize+2, networkSettings.getInputSize());
+        ArrayList<RealVector> t = MatrixUtil.createListOfVectors(minibatchSize+2, networkSettings.getHiddenSize());
+        ArrayList<RealVector> h = MatrixUtil.createListOfVectors(minibatchSize+2, networkSettings.getHiddenSize());
+        ArrayList<RealVector> s = MatrixUtil.createListOfVectors(minibatchSize+2, networkSettings.getInputSize());
+        ArrayList<RealVector> y = MatrixUtil.createListOfVectors(minibatchSize+2, networkSettings.getInputSize());
 
         double newLogSum = 0.0;
         try {
@@ -103,8 +108,14 @@ public class Rnn extends Model {
             }
 
             // iterator over minibatch
-            for (int i = 1; i<=minibatchSize; i++) {
-                int wordIndex = vocab.getWordIndex(FileUtil.readNextWord(reader));
+            for (int i = 1; i<=minibatchSize+1; i++) {
+                int wordIndex;
+                if (i == 1) {
+                    wordIndex = Vocab.START_TOKEN;
+                } else {
+                    wordIndex = vocab.getWordIndex(FileUtil.readNextWord(reader));
+                }
+
                 x.get(i).setEntry(wordIndex,1);
 
                 if (i == 1) {
@@ -162,9 +173,9 @@ public class Rnn extends Model {
     }
 
     protected RnnParameterPack computeGrad(RnnParameterPack model) {
-        ArrayList<RealVector> deltaOutput = MatrixUtil.createListOfVectors(minibatchSize+1, model.getInputSize());
+        ArrayList<RealVector> deltaOutput = MatrixUtil.createListOfVectors(minibatchSize+2, model.getInputSize());
 
-        for (int i = minibatchSize-1; i>0; i--){
+        for (int i = minibatchSize; i>0; i--){
             for (int k = 0; k < s.get(i).getDimension(); k++) {
                 deltaOutput.get(i).setEntry(k, derivativeOfOutputActivationFunction(s.get(i).getEntry(k)) * (x.get(i+1).getEntry(k)-y.get(i).getEntry(k)));
             }
@@ -175,16 +186,16 @@ public class Rnn extends Model {
 
     protected RnnParameterPack backwardPass(RnnParameterPack model, ArrayList<RealVector> deltaOutput) {
         // no damping
-        ArrayList<RealVector> damping = MatrixUtil.createListOfVectors(minibatchSize+1, model.getHiddenSize());
+        ArrayList<RealVector> damping = MatrixUtil.createListOfVectors(minibatchSize+2, model.getHiddenSize());
         return backwardsPassWithDamping(model, deltaOutput, damping);
     }
 
     protected RnnParameterPack backwardsPassWithDamping(RnnParameterPack model, ArrayList<RealVector> deltaOutput, ArrayList<RealVector> damping){
-        ArrayList<RealVector> deltaHidden = MatrixUtil.createListOfVectors(minibatchSize+1, model.getHiddenSize());
-        ArrayList<RealVector> deltaZ = MatrixUtil.createListOfVectors(minibatchSize+1, model.getHiddenSize());
+        ArrayList<RealVector> deltaHidden = MatrixUtil.createListOfVectors(minibatchSize+2, model.getHiddenSize());
+        ArrayList<RealVector> deltaZ = MatrixUtil.createListOfVectors(minibatchSize+2, model.getHiddenSize());
 
-        for (int i = minibatchSize; i>0; i--){
-            if (i == minibatchSize) {
+        for (int i = minibatchSize+1; i>0; i--){
+            if (i == minibatchSize+1) {
                 deltaHidden.set(i, currentNetworkParameters.getWyh().transpose().operate(deltaOutput.get(i)));
                 RealVector tmp2 = t.get(i);
                 for (int k = 0; k < tmp2.getDimension(); k++) {
@@ -206,7 +217,7 @@ public class Rnn extends Model {
 
         RnnParameterPack gradPack = RnnParameterPack.createEmptyPack(model.getInputSize(), model.getHiddenSize());
 
-        for (int i = minibatchSize; i>0; i--){
+        for (int i = minibatchSize+1; i>0; i--){
             gradPack.setWyh(gradPack.getWyh().add(deltaOutput.get(i).outerProduct(h.get(i))));
             gradPack.setWhh(gradPack.getWhh().add(deltaZ.get(i).outerProduct(h.get(i-1))));
             gradPack.setWhx(gradPack.getWhx().add(deltaZ.get(i).outerProduct(x.get(i))));
@@ -224,12 +235,63 @@ public class Rnn extends Model {
         return minibatchSize;
     }
 
-    public void feedNextToken(int tokenId) {
-        // TODO: Implement this
-        testTokensSeen++;
+    @Override
+    public void prepareForTesting() {
+        testTokensSeen = 0;
+        RealVector latestH = MatrixUtils.createRealVector(new double[currentNetworkParameters.getHiddenSize()]);
     }
+
+    @Override
+    public void feedNextToken(int tokenId) {
+        RealVector x = MatrixUtils.createRealVector(new double[currentNetworkParameters.getInputSize()]);
+        RealVector t;
+        RealVector h = MatrixUtils.createRealVector(new double[currentNetworkParameters.getHiddenSize()]);
+        RealVector s;
+        RealVector y = MatrixUtils.createRealVector(new double[currentNetworkParameters.getInputSize()]);
+
+        testTokensSeen++;
+
+        x.setEntry(tokenId, 1);
+
+        if (testTokensSeen == 1) {
+            // Whh*h0 not defined, use binit
+            t = currentNetworkParameters.getWhx().operate(x).add(currentNetworkParameters.getBinit()).add(currentNetworkParameters.getBh());
+        } else {
+            t = currentNetworkParameters.getWhx().operate(x).add(currentNetworkParameters.getWhh().operate(latestH)).add(currentNetworkParameters.getBh());
+        }
+        for (int j = 0; j < t.getDimension(); j++) {
+            h.setEntry(j, hiddenActivationFunction(t.getEntry(j)));
+        }
+        s = (currentNetworkParameters.getWyh().operate(h).add(currentNetworkParameters.getBy()));
+        for (int j = 0; j < s.getDimension(); j++) {
+            y.setEntry(j, outputActivationFunction(s.getEntry(j)));
+        }
+
+        latestH = h;
+        latestPrediction = y;
+    }
+
+    @Override
     public double[] predictNextToken() {
-        // TODO: Implement this
-        return null;
+        // if first word, feed start token
+        if (testTokensSeen == 0) feedNextToken(Vocab.START_TOKEN);
+
+        double[] prediction = latestPrediction.toArray();
+
+        // simple smoothing
+        double predictionSum = 0;
+        for (int i = 0; i<prediction.length; i++) {
+            prediction[i] += 0.1;
+            predictionSum += prediction[i];
+        }
+
+        // overestimate sum for floating point inaccuracies
+        predictionSum += 1e-8;
+
+        for (int i = 0; i<prediction.length; i++) {
+            prediction[i] = prediction[i] / predictionSum;
+        }
+
+        return prediction;
     }
 }

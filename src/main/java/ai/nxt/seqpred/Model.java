@@ -15,6 +15,10 @@ public abstract class Model {
         // models can override this, but don't have to
     }
 
+    public void prepareForTesting() {
+        // models can override this, but don't have to
+    }
+
     public abstract void train();
 
     public void setTrainingFile(String trainingFileName) {

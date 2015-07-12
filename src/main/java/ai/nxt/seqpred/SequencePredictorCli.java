@@ -13,7 +13,7 @@ public class SequencePredictorCli {
     public static String yearOfRelease = "2015";
 
     public static void main(String args[]) {
-        Options cliOptions = getCliOptions(args);
+        Options cliOptions = getCliOptions();
 
         String trainingFileName = null;
 
@@ -64,14 +64,14 @@ public class SequencePredictorCli {
             ModelEvaluator evaluator = new ModelEvaluator(filePartitioner.getTestFile(), vocab);
             evaluator.testModel(model);
         } catch (InvalidPredictionException e) {
-            System.err.println("The model return an invalid prediction. Wrong size or did not sum to 1.");
+            System.err.println("The model returned an invalid prediction: " + e.getMessage());
             return;
         }
 
         System.out.println("Cli terminated");
     }
 
-    public static Options getCliOptions(String args[]) {
+    public static Options getCliOptions() {
         Options options = new Options();
         Option trainingFileOption = Option.builder("tf")
                 .required(true)
