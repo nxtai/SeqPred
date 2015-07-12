@@ -18,3 +18,6 @@ seqpred.iml
 # Gradle
 .gradle
 build/*
+
+# Processed data files
+data/processed/

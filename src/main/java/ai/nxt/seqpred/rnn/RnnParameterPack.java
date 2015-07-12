@@ -15,8 +15,21 @@ public class RnnParameterPack {
     RealVector by;
     RealVector binit;
 
+    public int getHiddenSize() {
+        return hiddenSize;
+    }
+
+    public int getInputSize() {
+        return inputSize;
+    }
+
+    private int hiddenSize;
+    private int inputSize;
+
     public static RnnParameterPack createEmptyPack(int vocabSize, int hiddenSize) {
         RnnParameterPack rnnParameterPack = new RnnParameterPack();
+        rnnParameterPack.hiddenSize = hiddenSize;
+        rnnParameterPack.inputSize = vocabSize;
         rnnParameterPack.setWhx(MatrixUtils.createRealMatrix(hiddenSize, vocabSize));
         rnnParameterPack.setWhh(MatrixUtils.createRealMatrix(hiddenSize, hiddenSize));
         rnnParameterPack.setWyh(MatrixUtils.createRealMatrix(vocabSize, hiddenSize));
@@ -63,7 +76,7 @@ public class RnnParameterPack {
     }
 
     private static double getRandom() {
-        return Math.random();
+        return Math.random() / 50;
     }
 
     public RealMatrix getWhx() {
