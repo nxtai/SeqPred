@@ -11,12 +11,12 @@ public class VocabTest extends TestCase {
     @Test
     public void testGetVocabSize() throws Exception {
         Vocab vocab = new Vocab("src/test/resources/data/vocab-test-set.txt");
-        assertEquals(vocab.getVocabSize(),12);
+        assertEquals(vocab.getVocabSize(),16);
     }
 
     @Test
     public void testGetTrainingFileSize() throws Exception {
         Vocab vocab = new Vocab("src/test/resources/data/vocab-test-set.txt");
-        assertEquals(vocab.getTrainingFileSize(),16);
+        assertEquals(vocab.getTrainingFileSize(),19);
     }
 }
