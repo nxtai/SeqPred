@@ -3,7 +3,10 @@ package ai.nxt.seqpred;
 import ai.nxt.seqpred.Exceptions.FileTooShortException;
 import ai.nxt.seqpred.Exceptions.InvalidPredictionException;
 import ai.nxt.seqpred.rnn.Rnn;
+import ai.nxt.seqpred.streams.FileSequenceStream;
 import org.apache.commons.cli.*;
+
+import java.io.FileNotFoundException;
 
 /**
  * Created by Jeppe Hallgren on 21/06/15.
@@ -35,25 +38,28 @@ public class SequencePredictorCli {
         // print out parsed CLI arguments
         System.out.println("Training file: " + trainingFileName);
 
+        // partition
+        FilePartitioner filePartitioner;
+        try {
+            filePartitioner = new FilePartitioner(new FileSequenceStream(trainingFileName));
+        } catch (FileTooShortException e) {
+            System.err.println("The training file must be at least 5 lines long");
+            return;
+        } catch (FileNotFoundException e) {
+            System.err.println("Training file not found: " + trainingFileName);
+            return;
+        }
+
         // process training file
-        Vocab vocab = new Vocab(trainingFileName);
+        Vocab vocab = new Vocab(filePartitioner.getTrainingFile());
 
         // print out statistics
         System.out.println("Processed " + vocab.getTrainingFileSize() + " words in training file");
         System.out.println("Vocab size is " + vocab.getVocabSize());
 
-        // partition
-        FilePartitioner filePartitioner;
-        try {
-            filePartitioner = new FilePartitioner(trainingFileName);
-        } catch (FileTooShortException e) {
-            System.err.println("The training file must be at least 5 lines long");
-            return;
-        }
-
         // initialise model
         Model model = new Rnn(vocab);
-        model.setTrainingFile(trainingFileName);
+        model.setTrainingFile(filePartitioner.getTrainingFile());
         model.init();
 
         // train model

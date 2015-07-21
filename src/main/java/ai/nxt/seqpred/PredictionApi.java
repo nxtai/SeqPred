@@ -36,7 +36,8 @@ public class PredictionApi {
         ServletContextHandler context = new ServletContextHandler(server, "/", ServletContextHandler.SESSIONS);
         ServletHolder jerseyServlet = context.addServlet(org.glassfish.jersey.servlet.ServletContainer.class, "/*");
         jerseyServlet.setInitOrder(1);
-        jerseyServlet.setInitParameter("jersey.config.server.provider.packages","ai.nxt.seqpred.api");
+        jerseyServlet.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature","true");
+        jerseyServlet.setInitParameter("jersey.config.server.provider.packages","ai.nxt.seqpred.api.endpoints");
 
         try {
             server.start();

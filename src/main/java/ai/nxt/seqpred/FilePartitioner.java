@@ -1,10 +1,8 @@
 package ai.nxt.seqpred;
 
 import ai.nxt.seqpred.Exceptions.FileTooShortException;
-import ai.nxt.seqpred.util.FileUtil;
+import ai.nxt.seqpred.streams.SequenceStream;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -17,27 +15,18 @@ public class FilePartitioner {
     private String validationFile;
     private String testFile;
 
-    public FilePartitioner(String trainingFileName) throws FileTooShortException {
+    public FilePartitioner(SequenceStream sequenceStream) throws FileTooShortException {
         // count lines in file
-        int lineCount = FileUtil.countLines(trainingFileName);
+        int lineCount = sequenceStream.getLineCount();
 
         if (lineCount < 5) {
             throw new FileTooShortException();
         }
 
-        // find file name
-        int lastSlashPos = trainingFileName.lastIndexOf('/');
-        String fileName;
-        if (lastSlashPos != -1) {
-            fileName = trainingFileName.substring(trainingFileName.lastIndexOf('/')+1, trainingFileName.length());
-        } else {
-            fileName = trainingFileName;
-        }
-
         // define file names
-        trainingFile = "data/processed/" + fileName + ".train";
-        validationFile = "data/processed/" + fileName + ".valid";
-        testFile = "data/processed/" + fileName + ".test";
+        trainingFile = "data/processed/" + sequenceStream.getStreamId() + ".train";
+        validationFile = "data/processed/" + sequenceStream.getStreamId() + ".valid";
+        testFile = "data/processed/" + sequenceStream.getStreamId() + ".test";
 
         try {
             PrintWriter trainingFileWriter = new PrintWriter(trainingFile);
@@ -46,10 +35,8 @@ public class FilePartitioner {
 
             int currentLine = 0;
 
-
-            BufferedReader br = new BufferedReader(new FileReader(trainingFileName));
             String line;
-            while ((line = br.readLine()) != null) {
+            while ((line = sequenceStream.getNextLine()) != null) {
                 if (lineCount * 0.6 > currentLine) {
                     // add to training file
                     trainingFileWriter.println(line);

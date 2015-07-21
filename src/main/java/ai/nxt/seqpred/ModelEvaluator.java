@@ -21,8 +21,9 @@ public class ModelEvaluator {
         this.vocab = vocab;
     }
 
-    public void testModel(Model model) throws InvalidPredictionException {
+    public double testModel(Model model) throws InvalidPredictionException {
         System.out.println("Testing model");
+        double perplexity = -1;
         try {
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(new FileInputStream(testFileName)));
@@ -45,7 +46,7 @@ public class ModelEvaluator {
                 // read next word from test file
                 nextWord = FileUtil.readNextWord(reader);
             }
-            double perplexity = Math.pow(10.0,-1*logSum/wordsRead);
+            perplexity = Math.pow(10.0,-1*logSum/wordsRead);
             System.out.println("The test used " + wordsRead + " words.");
             System.out.println("Model had perplexity: " + perplexity);
             DecimalFormat df = new DecimalFormat("#.##");
@@ -54,6 +55,7 @@ public class ModelEvaluator {
             e.printStackTrace();
         }
         System.out.println("Tested model");
+        return perplexity;
     }
 
     public void assertPrediction(double[] prediction) throws InvalidPredictionException {

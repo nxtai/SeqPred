@@ -20,12 +20,8 @@ dependencies {
     compile "org.glassfish.jersey.core:jersey-server:2.7"
     compile "org.glassfish.jersey.containers:jersey-container-servlet-core:2.7"
     compile "org.glassfish.jersey.containers:jersey-container-jetty-http:2.7"
-    compile "org.glassfish.jersey.media:jersey-media-moxy:2.7"
+    compile "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:2.5.4"
     testCompile 'junit:junit:4.12'
-}
-
-task runapi() {
-    mainClassName = 'ai.nxt.seqpred.PredictionApi'
 }
 
 run {
@@ -33,4 +29,8 @@ run {
     systemProperties System.getProperties()
     if (System.getProperty("exec.args"))
         args System.getProperty("exec.args").split()
+
+    // check if we should run the api server
+    if (System.getProperty("exec.args").toString().contains("-api"))
+        mainClassName = 'ai.nxt.seqpred.PredictionApi'
 }
