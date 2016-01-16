@@ -1,13 +1,13 @@
 package ai.nxt.seqpred.api.request;
 
-import ai.nxt.seqpred.JsonModel;
+import ai.nxt.seqpred.rnn.JsonRnn;
 
 /**
  * Created by Jeppe Hallgren on 17/07/15.
  */
 public class MarkovChainRequest {
     private String modelId;
-    private JsonModel jsonModel;
+    private JsonRnn jsonModel;
     private int length;
 
     public MarkovChainRequest() {
@@ -18,7 +18,7 @@ public class MarkovChainRequest {
         return modelId;
     }
 
-    public JsonModel getJsonModel() {
+    public JsonRnn getJsonModel() {
         return jsonModel;
     }
 

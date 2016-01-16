@@ -113,13 +113,17 @@ public class ApiRouter {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public String markovChain(MarkovChainRequest req) {
+        if (req == null) {
+            System.err.println("Failed to decode MarkovChainRequest.");
+            return null;
+        }
         if (req.getLength() < 1) return "";
         Rnn rnn = new Rnn((JsonRnn) req.getJsonModel());
         rnn.prepareForTesting();
         StringBuilder chain = new StringBuilder();
         int length = 0;
 
-        while (length <= req.getLength()) {
+        while (length < req.getLength()) {
             double[] prediction = rnn.predictNextToken();
             int nextToken = ProbabilityUtil.getWeightedIndex(prediction);
             chain.append(rnn.getVocab().getWordString(nextToken) + " ");
@@ -127,6 +131,6 @@ public class ApiRouter {
             rnn.feedNextToken(nextToken);
         }
 
-        return chain.toString();
+        return "\"" + chain.toString() + "\"";
     }
 }
