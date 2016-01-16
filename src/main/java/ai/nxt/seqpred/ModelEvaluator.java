@@ -1,6 +1,7 @@
 package ai.nxt.seqpred;
 
 import ai.nxt.seqpred.Exceptions.InvalidPredictionException;
+import ai.nxt.seqpred.Exceptions.TokenNotInVocabException;
 import ai.nxt.seqpred.util.FileUtil;
 
 import java.io.BufferedReader;
@@ -52,6 +53,8 @@ public class ModelEvaluator {
             DecimalFormat df = new DecimalFormat("#.##");
             System.out.println("Model had top-1 accuracy: " + df.format((double) wordCorrectlyGuessed / (double) wordsRead * 100) + "%");
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (TokenNotInVocabException e) {
             e.printStackTrace();
         }
         System.out.println("Tested model");

@@ -8,9 +8,15 @@ import ai.nxt.seqpred.Vocab;
  */
 public class JsonRnn extends JsonModel {
     private Rnn rnn;
+    private JsonRnnParameterPack jsonRnnParameterPack;
+    private Vocab vocab;
+    private String modelId;
 
-    public JsonRnn(Rnn rnn) {
-        this.rnn = rnn;
+    public JsonRnn(){}
+
+    public JsonRnn(JsonRnnParameterPack jsonRnnParameterPack, Vocab vocab) {
+        this.jsonRnnParameterPack = jsonRnnParameterPack;
+        this.vocab = vocab;
     }
 
     public String getModelId() {
@@ -18,9 +24,9 @@ public class JsonRnn extends JsonModel {
     }
 
     public Vocab getVocab() {
-        return rnn.getVocab();
+        return vocab;
     }
 
-    public JsonRnnParameterPack getJsonRnnParameterPack() {return rnn.getCurrentNetworkParameters().getJson(); }
+    public JsonRnnParameterPack getJsonRnnParameterPack() {return jsonRnnParameterPack; }
 }
 

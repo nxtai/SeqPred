@@ -33,6 +33,9 @@ public class StringSequenceStream implements SequenceStream {
     }
 
     public String getNextWord() {
-        return scanner.next("%s");
+        if (scanner.hasNext())
+            return scanner.next();
+        else
+            return null;
     }
 }

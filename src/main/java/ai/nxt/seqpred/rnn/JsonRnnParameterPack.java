@@ -13,6 +13,10 @@ public class JsonRnnParameterPack {
     private int hiddenSize;
     private int inputSize;
 
+    public JsonRnnParameterPack(){
+        // empty constructor for json decode
+    }
+
     public JsonRnnParameterPack(double[][] whx, double[][] whh, double[][] wyh, double[] bh, double[] by, double[] binit, int hiddenSize, int inputSize) {
         this.whx = whx;
         this.whh = whh;

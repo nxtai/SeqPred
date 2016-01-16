@@ -140,4 +140,17 @@ public class RnnParameterPack {
         JsonRnnParameterPack jsonPack = new JsonRnnParameterPack(whx.getData(),whh.getData(),wyh.getData(),bh.toArray(),by.toArray(),binit.toArray(),getHiddenSize(),getInputSize());
         return jsonPack;
     }
+
+    public static RnnParameterPack createFromJson(JsonRnnParameterPack jsonPack) {
+        RnnParameterPack rnnParameterPack = new RnnParameterPack();
+        rnnParameterPack.hiddenSize = jsonPack.getHiddenSize();
+        rnnParameterPack.inputSize = jsonPack.getInputSize();
+        rnnParameterPack.setWhx(MatrixUtils.createRealMatrix(jsonPack.getWhx()));
+        rnnParameterPack.setWhh(MatrixUtils.createRealMatrix(jsonPack.getWhh()));
+        rnnParameterPack.setWyh(MatrixUtils.createRealMatrix(jsonPack.getWyh()));
+        rnnParameterPack.setBh(MatrixUtils.createRealVector(jsonPack.getBh()));
+        rnnParameterPack.setBy(MatrixUtils.createRealVector(jsonPack.getBy()));
+        rnnParameterPack.setBinit(MatrixUtils.createRealVector(jsonPack.getBinit()));
+        return rnnParameterPack;
+    }
 }

@@ -1,5 +1,6 @@
 package ai.nxt.seqpred.rnn;
 
+import ai.nxt.seqpred.Exceptions.TokenNotInVocabException;
 import ai.nxt.seqpred.Model;
 import ai.nxt.seqpred.Vocab;
 import ai.nxt.seqpred.util.FileUtil;
@@ -40,6 +41,7 @@ public class Rnn extends Model {
 
     public Rnn(JsonRnn jsonRnn) {
         super(jsonRnn.getVocab());
+        setCurrentNetworkParameters(RnnParameterPack.createFromJson(jsonRnn.getJsonRnnParameterPack()));
     }
 
     public RnnParameterPack getCurrentNetworkParameters() {
@@ -144,6 +146,8 @@ public class Rnn extends Model {
             }
 
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (TokenNotInVocabException e) {
             e.printStackTrace();
         }
 

@@ -2,6 +2,7 @@ package ai.nxt.seqpred.api.endpoints;
 
 import ai.nxt.seqpred.Exceptions.FileTooShortException;
 import ai.nxt.seqpred.Exceptions.InvalidPredictionException;
+import ai.nxt.seqpred.Exceptions.TokenNotInVocabException;
 import ai.nxt.seqpred.FilePartitioner;
 import ai.nxt.seqpred.Model;
 import ai.nxt.seqpred.ModelEvaluator;
@@ -72,7 +73,7 @@ public class ApiRouter {
             System.err.println("The model returned an invalid prediction: " + e.getMessage());
             return null;
         }
-        return new JsonRnn((Rnn) model);
+        return new JsonRnn( ((Rnn) model).getCurrentNetworkParameters().getJson(), model.getVocab() );
     }
 
     @POST
@@ -80,12 +81,27 @@ public class ApiRouter {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public double[] predict(PredictionRequest req) {
+        if (req == null) {
+            System.err.println("Failed to decode PredictRequest.");
+            return null;
+        }
         Rnn rnn = new Rnn((JsonRnn) req.getJsonModel());
+        if (req.getSequence() == null) {
+            System.err.println("Err: Failed to decode input sequence in PredictRequest.");
+            return null;
+        }
+        System.out.println("Running model");
         StringSequenceStream sequenceStream = new StringSequenceStream(req.getSequence(), null);
         rnn.prepareForTesting();
         String nextToken = sequenceStream.getNextWord();
         while (nextToken != null) {
-            rnn.feedNextToken(rnn.getVocab().getWordIndex(nextToken));
+            try {
+                rnn.feedNextToken(rnn.getVocab().getWordIndex(nextToken));
+            } catch (TokenNotInVocabException e) {
+                System.err.println("Word in not in vocab: " + e.getToken());
+                return null;
+            }
+            nextToken = sequenceStream.getNextWord();
         }
         double[] prediction = rnn.predictNextToken();
         return prediction;
