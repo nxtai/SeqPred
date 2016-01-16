@@ -20,7 +20,7 @@ public class FilePartitioner {
         int lineCount = sequenceStream.getLineCount();
 
         if (lineCount < 5) {
-            throw new FileTooShortException();
+            throw new FileTooShortException(lineCount);
         }
 
         // define file names

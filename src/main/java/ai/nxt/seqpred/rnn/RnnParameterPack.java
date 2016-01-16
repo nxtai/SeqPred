@@ -135,4 +135,9 @@ public class RnnParameterPack {
         setBy(getBy().add(pack.getBy().mapMultiply(alpha)));
         setBinit(getBinit().add(pack.getBinit().mapMultiply(alpha)));
     }
+
+    public JsonRnnParameterPack getJson() {
+        JsonRnnParameterPack jsonPack = new JsonRnnParameterPack(whx.getData(),whh.getData(),wyh.getData(),bh.toArray(),by.toArray(),binit.toArray(),getHiddenSize(),getInputSize());
+        return jsonPack;
+    }
 }

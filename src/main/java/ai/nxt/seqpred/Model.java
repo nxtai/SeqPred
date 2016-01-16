@@ -32,4 +32,8 @@ public abstract class Model {
     // these method are used for testing model performance
     public abstract void feedNextToken(int tokenId);
     public abstract double[] predictNextToken();
+
+    public Vocab getVocab() {
+        return vocab;
+    }
 }

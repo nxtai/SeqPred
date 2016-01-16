@@ -38,6 +38,10 @@ public class Rnn extends Model {
         super(vocab);
     }
 
+    public Rnn(JsonRnn jsonRnn) {
+        super(jsonRnn.getVocab());
+    }
+
     public RnnParameterPack getCurrentNetworkParameters() {
         return currentNetworkParameters;
     }

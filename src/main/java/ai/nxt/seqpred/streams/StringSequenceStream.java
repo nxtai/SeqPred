@@ -31,4 +31,8 @@ public class StringSequenceStream implements SequenceStream {
     public String getStreamId() {
         return sequenceId;
     }
+
+    public String getNextWord() {
+        return scanner.next("%s");
+    }
 }
